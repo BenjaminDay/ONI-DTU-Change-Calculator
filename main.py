@@ -16,6 +16,9 @@ class Stats:
         self.m = mass #(kg)
         self.T = temp #starting(C)
 
+    def tempChange(self, q_DTU):
+        return(q_DTU / self.c) / self.m
+
 def get_k(mode, k1, k2):
     if mode == "k_lowest":
         return min(k1, k2)
@@ -32,7 +35,7 @@ def get_k(mode, k1, k2):
 def get_q_DTU(mode, mat1, mat2):
     T_diff = mat1.T - mat2.T
     if T_diff < 1:
-        pass
+        return 0
     mode_k = get_k(mode, mat1.k, mat2.k)
     q_max1a = (T_diff / 4) * mat1.m * mat1.c
     q_max1b = (T_diff / 4) * mat2.m * mat2.c
@@ -41,21 +44,18 @@ def get_q_DTU(mode, mat1, mat2):
     q_real = T_diff * 0.2 * mode_k * 1000
     return min(q_real, q_upperlimit)
 
-def get_tempChange(q_DTU, mat):
-    return (q_DTU / mat.c) / mat.m
-
 def main():
     count = 0
     thermium = Stats(220, 0.622, 100, 20.0)
     superCoolant = Stats(9.460, 8.440, 800, -20.0)
     print("starting thermium temp: ", round(thermium.T, 1), " starting superCoolant temp: ", round(superCoolant.T, 1))
-    q_DTU = 2
+    q_DTU = 1
 
     while q_DTU>0.1:
         count+=1
         q_DTU = get_q_DTU("k_geom", thermium, superCoolant)
-        thermium.T -= get_tempChange(q_DTU, thermium)
-        superCoolant.T += get_tempChange(q_DTU, superCoolant)
+        thermium.T -= thermium.tempChange(q_DTU)
+        superCoolant.T += superCoolant.tempChange(q_DTU)
 
         print("q_DTU: ", round(q_DTU,1), " thermium temp: ", round(thermium.T, 1), "superCoolant temp: ", round(superCoolant.T, 1))
 
