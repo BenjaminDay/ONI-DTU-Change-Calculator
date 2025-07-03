@@ -31,11 +31,10 @@ def get_k(mode, k1, k2):
     elif mode == "k_mult":
         return 0.5*k1*k2
 
-def get_q_DTU(mode, mat1, mat2):
+def get_q_DTU(mode_k, mat1, mat2):
     T_diff = mat1.T - mat2.T
     if T_diff < 1:
         return 0
-    mode_k = get_k(mode, mat1.k, mat2.k)
     #print("mode_k: ", mode_k)
     q_max1a = (T_diff / 4) * mat1.m * mat1.c
     q_max1b = (T_diff / 4) * mat2.m * mat2.c
@@ -65,16 +64,18 @@ def main():
     print("starting conductor temp: ", round(conductor.T, 1), " starting abyssalite temp: ", round(abyssalite.T, 1))
     q_DTU = 1
 
+    mode_k = get_k("k_geom", conductor.k, abyssalite.k)
+
     #for i in range(0,5):
     while q_DTU>0.1:
         count+=1
-        q_DTU = get_q_DTU("k_geom", conductor, abyssalite)
+        q_DTU = get_q_DTU(mode_k, conductor, abyssalite)
         # conductor.T -= conductor.tempChange(q_DTU)
         abyssalite.T += abyssalite.tempChange(q_DTU)
         if abyssalite.T > 3421.9:
             break
 
-        # logger.info(f"\tq_DTU: {round(q_DTU,1)} \tconductor temp: {round(conductor.T, 1)} \tabyssalite temp: {abyssalite.T}")
+        logger.info(f"\tq_DTU: {round(q_DTU,1)} \tconductor temp: {round(conductor.T, 1)} \tabyssalite temp: {abyssalite.T}")
 
     print("time passed: ", count/5/60/10, "cycles")
     print("final conductor temp: ", round(conductor.T, 1), "final abyssalite temp: ", abyssalite.T)
