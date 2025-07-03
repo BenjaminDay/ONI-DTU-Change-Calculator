@@ -1,4 +1,10 @@
+from data.resource_reader import Elements, State
+from data.stats import StatsBuilder
+from dotenv import load_dotenv
 import math
+
+load_dotenv()
+
 """
 Todo:
 
@@ -45,9 +51,12 @@ def get_q_DTU(mode, mat1, mat2):
     return min(q_real, q_upperlimit)
 
 def main():
+    elements = Elements()
+    stats = StatsBuilder(elements)
+
     count = 0
-    thermium = Stats(220, 0.622, 100, 20.0)
-    superCoolant = Stats(9.460, 8.440, 800, -20.0)
+    thermium     = stats.of('thermium', State.SOLID).withMass(100).at(20.0).build()
+    superCoolant = stats.of('super coolant', State.LIQUID).withMass(800).at(-20.0).build()
     print("starting thermium temp: ", round(thermium.T, 1), " starting superCoolant temp: ", round(superCoolant.T, 1))
     q_DTU = 1
 
