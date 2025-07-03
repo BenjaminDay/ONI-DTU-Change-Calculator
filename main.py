@@ -2,6 +2,9 @@ from data.resource_reader import Elements, State
 from data.stats import StatsBuilder
 from dotenv import load_dotenv
 import math
+import logging
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -15,22 +18,12 @@ get results - done
 $$$ - kaching!
 """
 
-class Stats:
-    def __init__(self, TC, SHC, mass, temp):
-        self.k = TC #Thermal Conductivity
-        self.c = SHC #Specific Heat Capacity
-        self.m = mass #(kg)
-        self.T = temp #starting(C)
-
-    def tempChange(self, q_DTU):
-        return(q_DTU / self.c) / (self.m * 1000)
-
 def get_k(mode, k1, k2):
     if mode == "k_lowest":
         return min(k1, k2)
 
     elif mode == "k_geom":
-        return math.sqrt(k1 * k2) * 25
+        return math.sqrt(k1 * k2)
 
     elif mode == "k_avg":
         return 0.5*(k1 + k2)
@@ -48,7 +41,7 @@ def get_q_DTU(mode, mat1, mat2):
     q_max1b = (T_diff / 4) * mat2.m * mat2.c
     #print("T_diff: ", round(T_diff,2)," qmax: ",round(q_max1a,2), round(q_max1b,2))
     q_upperlimit = min(q_max1a, q_max1b)
-    q_real = T_diff * 0.2 * mode_k * 1000
+    q_real = T_diff * 0.2 * mode_k * 1000 * 25
     #print("q_real: ", q_real)
     return min(q_real, q_upperlimit)
 
@@ -62,8 +55,13 @@ def main():
     # print("starting thermium temp: ", round(thermium.T, 1), " starting superCoolant temp: ", round(superCoolant.T, 1))
     
     print("lead gas")
-    conductor = stats.of("lead", State.GAS).withMass(2000).at(4000.0).build()
+    conductor  = stats.of("lead", State.GAS).withMass(2000).at(4000.0).build()
+    logger.info(f"thermal conductivity: {conductor.k}")
+    logger.info(f"SHC: {conductor.c}")
     abyssalite = stats.of("abyssalite", State.SOLID).withMass(500).at(0.0).build()
+    logger.info(f"thermal conductivity abyss: {abyssalite.k}")
+    logger.info(f"SHC abyss: {abyssalite.c}")
+
     print("starting conductor temp: ", round(conductor.T, 1), " starting abyssalite temp: ", round(abyssalite.T, 1))
     q_DTU = 1
 
@@ -76,7 +74,7 @@ def main():
         if abyssalite.T > 3421.9:
             break
 
-        #print("q_DTU: ", round(q_DTU,1), " conductor temp: ", round(conductor.T, 1), "abyssalite temp: ", abyssalite.T)
+        # logger.info(f"\tq_DTU: {round(q_DTU,1)} \tconductor temp: {round(conductor.T, 1)} \tabyssalite temp: {abyssalite.T}")
 
     print("time passed: ", count/5/60/10, "cycles")
     print("final conductor temp: ", round(conductor.T, 1), "final abyssalite temp: ", abyssalite.T)

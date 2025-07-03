@@ -11,7 +11,7 @@ class Stats:
         self.T = temp #starting(C)
 
     def tempChange(self, q_DTU):
-        return(q_DTU / self.c) / self.m
+        return(q_DTU / self.c) / (self.m * 1000)
 
 
 class StatsBuilder: 
